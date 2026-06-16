@@ -42,7 +42,17 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
 
-      - name: Build debug APK
+      - name: Embed JS bundle in debug APK
+        run: |
+          node - <<'NODE'
+          const fs = require("fs");
+          const path = "android/app/build.gradle";
+          let text = fs.readFileSync(path, "utf8");
+          text = text.replace(/debuggableVariants\s*=\s*\[[^\]]*\]/, "debuggableVariants = []");
+          fs.writeFileSync(path, text);
+          NODE
+
+      - name: Build standalone debug APK
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
 
@@ -67,4 +77,4 @@ jobs:
             Installable Android APK for Forge System OS.
 
             This APK is built by GitHub Actions from the tagged source.
-            It is a debug-signed preview APK, suitable for direct Android sideload testing.
+            It is a debug-signed preview APK with the JavaScript bundle embedded, suitable for direct Android sideload testing.
